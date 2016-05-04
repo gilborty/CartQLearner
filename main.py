@@ -45,8 +45,66 @@ class QAgent:
         self.cur_state, self.prev_state = 0;
         self.cur_action, self.prev_action = -1
 
-    def get_box(self):
-        return 0
+    def get_box(self, observation):
+        """
+        The following routine was written by Rich Sutton and Chuck Anderson,
+        with translation from FORTRAN to C by Claude Sammut
+
+
+        Given the current state, returns a number from 0 to 161
+        designating the region of the state space encompassing the current state.
+        Returns a value of -1 if a failure state is encountered.
+        """
+        ONE_DEGREE = 0.0174532
+        SIX_DEGREES = 0.1047192
+        TWELVE_DEGREES = 0.2094384
+        FIFTY_DEGREES = 0.87266
+
+        box = 0 #Return value
+
+        x = observation[0]
+        x_dot = observation[1]
+        theta = observation[2]
+        theta_dot = observation[3]
+
+        if( x < -2.4 || x > 2.4 || theta < -TWELVE_DEGREES || theta > TWELVE_DEGREES ):
+            return -1 #Signal a failure
+
+        if( x < -0.8 ):
+            box = 0
+        elif( x < 0.8 ):
+            box = 1
+        else:
+            box = 2
+
+        if(x_dot < -0.5):
+            #Do nothing
+        elif(x_dot < 0.5):
+            box += 3
+        else:
+            box += 6
+
+        if(theta < -SIX_DEGREES):
+            #Do nothing
+        elif(theta < -ONE_DEGREE):
+            box +=9
+        elif(theta < 0):
+            box += 18
+        elif(theta < ONE_DEGREE):
+            box += 27
+        elif(theta < SIX_DEGREES):
+            box += 36
+        else:
+            box += 45
+
+        if( theta_dot < -FIFTY_DEGREES):
+            #Do nothing
+        elif( theta_dot < FIFTY_DEGREES):
+            box += 54
+        else:
+            box += 108
+
+        return box
 
 
     def get_action(self, observation, reward):
